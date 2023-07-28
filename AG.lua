@@ -1,3 +1,4 @@
+
 --[[
 
     Blockate Anti-Grief
@@ -41,31 +42,52 @@ local grieferList = HttpService:JSONDecode(readfile("./BlockateAntiGrief/Griefer
 local destroyWarningCooldown = {} -- Add the destroy warning cooldown table
 local paintWarningCooldown = {}   -- Add the paint warning cooldown table
 
+local exemptedPlayers = {
+    "void1z", 
+    "PlayerName2",
+    -- Add more player names as needed
+}
 
+-- Function to check if a player is exempted
+local function isPlayerExempted(playerName)
+    return table.find(exemptedPlayers, playerName) ~= nil
+end
 
 -- // Functions \\ --
 local function shout(message)
     game:GetService("ReplicatedStorage").Sockets.Command:InvokeServer("!shout "..message)
 end
 
+-- Function to ban a player (modified to check for exemption)
 local function ban(playerName, reason)
     if reason == nil then reason = "No reason given." end
-    game:GetService("ReplicatedStorage").Sockets.Command:InvokeServer("!ban "..playerName)
-    shout("\n\n\n\n\n\n\n✅ Banned Player: "..playerName.." with reason: "..reason)
-    return true
-end
-
-local function hub(playerName, reason)
-    if reason == nil then reason = "No reason given." end
-    local response = game:GetService("ReplicatedStorage").Sockets.Command:InvokeServer("!hub "..playerName)
-    print(response)
-    if response:find("Hubbed") then
-        shout("\n\n\n\n\n\n\n✅ Hubbed Player: "..playerName.." with reason: "..reason..".\nThey have "..grieferList[person].."/"..getgenv().MAX_CHANCES.." chances left until they get banned.")
+    if not isPlayerExempted(playerName) then
+        game:GetService("ReplicatedStorage").Sockets.Command:InvokeServer("!ban " .. playerName)
+        shout("\n\n\n\n\n\n\n✅ Banned Player: " .. playerName .. " with reason: " .. reason)
         return true
     else
-        shout("\n\n\n\n\n\n\n❗ Failed to hub player: "..playerName)
-        return false
+        print(playerName .. " is exempted from ban.")
     end
+    return false
+end
+
+-- Function to hub a player (modified to check for exemption)
+local function hub(playerName, reason)
+    if reason == nil then reason = "No reason given." end
+    if not isPlayerExempted(playerName) then
+        local response = game:GetService("ReplicatedStorage").Sockets.Command:InvokeServer("!hub " .. playerName)
+        print(response)
+        if response:find("Hubbed") then
+            shout("\n\n\n\n\n\n\n✅ Hubbed Player: " .. playerName .. " with reason: " .. reason .. ".\nThey have " .. grieferList[person] .. "/" .. getgenv().MAX_CHANCES .. " chances left until they get banned.")
+            return true
+        else
+            shout("\n\n\n\n\n\n\n❗ Failed to hub player: " .. playerName)
+            return false
+        end
+    else
+        print(playerName .. " is exempted from hub.")
+    end
+    return false
 end
 
 local function increment(person)
@@ -113,7 +135,7 @@ Players.LocalPlayer.PlayerGui.MainGUI.Logs.LogsList.ChildAdded:Connect(function(
         playerDestroyCount[player] = nil
         playerPaintCount[player] = nil
         increment(player)
-    elseif string.find(child.Text, "ran 'tp all me'") then
+    elseif string.find(child.Text, "ran '!tp all me'") then
         -- Player used the command "tp all me," hub them
         local playerName = child.Text:split(" ")[1]
         shout("\n\n\n\n\n\n\n[BLOCK GUARD] Hubbing Player for using 'tp all me': " .. playerName)
@@ -121,17 +143,29 @@ Players.LocalPlayer.PlayerGui.MainGUI.Logs.LogsList.ChildAdded:Connect(function(
         increment(playerName)
     end
 end)
-    end
-end)
+
+local MarketplaceService = game:GetService("MarketplaceService")
+
+-- Function to check if a player's account is under the specified number of days old
+local function isAccountUnderDaysOld(player, days)
+    local creationTime = MarketplaceService:GetUserCreationTime(player.UserId)
+    local currentTime = DateTime.now()
+
+    -- Calculate the difference in days between the current time and the account creation time
+    local accountAgeInDays = (currentTime - creationTime).TotalDays
+
+    return accountAgeInDays < days
+end
 
 Players.PlayerAdded:Connect(function(player)
     -- Auto-ban players whose accounts are under 30 days old
-    local daysSinceJoin = player.DaysSinceJoin
-    if daysSinceJoin < 30 then
-        ban(player.Name, "New Account (Under 30 days)")
+    local daysUnderLimit = 30
+    if isAccountUnderDaysOld(player, daysUnderLimit) then
+        ban(player.Name, "New Account (Under " .. daysUnderLimit .. " days)")
     else
         pcall(function()
-            if grieferList[player.Name] >= getgenv().MAX_CHANCES then
+            local grieferCount = grieferList[player.Name] or 0 -- Retrieve the griefer count or set to 0 if not found
+            if grieferCount >= getgenv().MAX_CHANCES then
                 return ban(player.Name, "Griefer")
             end
         end)
@@ -139,6 +173,7 @@ Players.PlayerAdded:Connect(function(player)
         playerPaintCount[player.Name] = 0
     end
 end)
+
 
 for _,v in pairs(Players:GetPlayers()) do
     pcall(function()
