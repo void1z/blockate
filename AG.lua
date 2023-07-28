@@ -13,7 +13,7 @@
     1. Run !logs
     2. Run script
     3. Enjoy
-d
+
 ]]
 
 -- // Configuration \\ --
@@ -44,7 +44,7 @@ local paintWarningCooldown = {}   -- Add the paint warning cooldown table
 
 local exemptedPlayers = {
     "void1z", 
-    "PlayerName2",
+    "Player2",
     -- Add more player names as needed
 }
 
@@ -193,12 +193,12 @@ local function sendTeamChat(message)
     game:GetService("ReplicatedStorage"):WaitForChild("DefaultChatSystemChatEvents"):WaitForChild("SayMessageRequest"):FireServer(unpack(args))
 end
 
-while wait(2) do
+while wait(1) do
     local localPlayer = game.Players.LocalPlayer
 
     -- Block Destroy and Block Paint
     for k, v in pairs(playerDestroyCount) do
-        if k ~= localPlayer.Name then -- Skip processing the local player's data
+        if k ~= localPlayer.Name or not isPlayerExempted(k) then -- Skip processing the local player's data and exempted players
             if v >= getgenv().MAX_BLOCK_DELETE then
                 shout("\n\n\n\n\n\n\n[BLOCK GUARD] Hubbing Potential Griefer: "..k)
                 hub(k, "Potential Griefer")
@@ -216,7 +216,7 @@ while wait(2) do
     end
 
     for k, v in pairs(playerPaintCount) do
-        if k ~= localPlayer.Name then -- Skip processing the local player's data
+        if k ~= localPlayer.Name or not isPlayerExempted(k) then -- Skip processing the local player's data
             if v >= getgenv().MAX_BLOCK_PAINT then
                 shout("\n\n\n\n\n\n\n[BLOCK GUARD] Hubbing Potential Griefer: "..k)
                 hub(k, "Potential Griefer")
