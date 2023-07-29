@@ -146,7 +146,7 @@ end)
 local MarketplaceService = game:GetService("MarketplaceService")
 
 local function isAccountUnderDaysOld(player, days)
-    local accountAgeInDays = player.AccountAge / (60 * 60 * 24) -- Convert seconds to days
+    local accountAgeInDays = 7 -- Convert seconds to days
 
     return accountAgeInDays < days
 end
