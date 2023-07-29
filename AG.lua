@@ -145,16 +145,12 @@ end)
 
 local MarketplaceService = game:GetService("MarketplaceService")
 
--- Function to check if a player's account is under the specified number of days old
 local function isAccountUnderDaysOld(player, days)
-    local creationTime = MarketplaceService:GetUserCreationTime(player.UserId)
-    local currentTime = DateTime.now()
-
-    -- Calculate the difference in days between the current time and the account creation time
-    local accountAgeInDays = (currentTime - creationTime).TotalDays
+    local accountAgeInDays = player.AccountAge / (60 * 60 * 24) -- Convert seconds to days
 
     return accountAgeInDays < days
 end
+
 
 Players.PlayerAdded:Connect(function(player)
     -- Auto-ban players whose accounts are under 30 days old
