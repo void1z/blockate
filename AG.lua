@@ -145,17 +145,10 @@ end)
 
 local MarketplaceService = game:GetService("MarketplaceService")
 
-local function isAccountUnderDaysOld(player, days)
-    local accountAgeInDays = 7 -- Convert seconds to days
-
-    return accountAgeInDays < days
-end
-
-
 Players.PlayerAdded:Connect(function(player)
     -- Auto-ban players whose accounts are under 30 days old
     local daysUnderLimit = 30
-    if isAccountUnderDaysOld(player, daysUnderLimit) then
+    if player.AccountAge >= 30 then
         ban(player.Name, "New Account (Under " .. daysUnderLimit .. " days)")
     else
         pcall(function()
