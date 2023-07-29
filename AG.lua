@@ -77,7 +77,7 @@ local function hub(playerName, reason)
         local response = game:GetService("ReplicatedStorage").Sockets.Command:InvokeServer("!hub " .. playerName)
         print(response)
         if response:find("Hubbed") then
-            shout("\n\n\n\n\n\n\n✅ Hubbed Player: " .. playerName .. " with reason: " .. reason .. ".\nThey have " .. grieferList[person] .. "/" .. getgenv().MAX_CHANCES .. " chances left until they get banned.")
+            shout("\n\n\n\n\n\n\n✅ Hubbed Player: " .. playerName .. " with reason: " .. reason .. ".\nThey have " .. (grieferList[playerName] or 0) .. "/" .. getgenv().MAX_CHANCES .. " chances left until they get banned.")
             return true
         else
             shout("\n\n\n\n\n\n\n❗ Failed to hub player: " .. playerName)
@@ -93,7 +93,7 @@ local function increment(person)
     if not grieferList[person] then
         grieferList[person] = 0
     end
-    grieferList[person] += 1
+    grieferList[person] = grieferList[person] + 1
     writefile("./BlockateAntiGrief/GrieferList.json", HttpService:JSONEncode(grieferList))
     if grieferList[person] >= getgenv().MAX_CHANCES then
         ban(person, "Griefer")
@@ -108,13 +108,13 @@ Players.LocalPlayer.PlayerGui.MainGUI.Logs.LogsList.ChildAdded:Connect(function(
         local Args = child.Text:split(" ")
         local player = Args[1]
 
-        playerDestroyCount[player] = playerDestroyCount[player] + 1
+        playerDestroyCount[player] = (playerDestroyCount[player] or 0) + 1
         print("Block deleted by "..player..", their destroy count per two seconds is currently: "..playerDestroyCount[player])
     elseif string.find(child.Text, "painted") then
         local Args = child.Text:split(" ")
         local player = Args[1]
         local paintedBlocks = Args[3] == "a" and 1 or Args[3]
-        playerPaintCount[player] = playerPaintCount[player] + paintedBlocks
+        playerPaintCount[player] = (playerPaintCount[player] or 0) + paintedBlocks
         print("Block painted by "..player..", their paint count per two seconds is currently: "..playerPaintCount[player])
     elseif string.find(child.Text, "!warp") then
         local playerName = child.Text:split(" ")[1]
@@ -173,10 +173,9 @@ Players.PlayerAdded:Connect(function(player)
     end
 end)
 
-
 for _,v in pairs(Players:GetPlayers()) do
     pcall(function()
-        if grieferList[v.Name] >= getgenv().MAX_CHANCES then
+        if grieferList[v.Name] and grieferList[v.Name] >= getgenv().MAX_CHANCES then
             return ban(v.Name, "Griefer")
         end
     end)
@@ -197,7 +196,7 @@ while wait(1) do
 
     -- Block Destroy and Block Paint
     for k, v in pairs(playerDestroyCount) do
-        if k ~= localPlayer.Name or not isPlayerExempted(k) then -- Skip processing the local player's data and exempted players
+        if k ~= localPlayer.Name and not isPlayerExempted(k) then -- Skip processing the local player's data and exempted players
             if v >= getgenv().MAX_BLOCK_DELETE then
                 shout("\n\n\n\n\n\n\n[BLOCK GUARD] Hubbing Potential Griefer: "..k)
                 hub(k, "Potential Griefer")
@@ -215,7 +214,7 @@ while wait(1) do
     end
 
     for k, v in pairs(playerPaintCount) do
-        if k ~= localPlayer.Name or not isPlayerExempted(k) then -- Skip processing the local player's data
+        if k ~= localPlayer.Name and not isPlayerExempted(k) then -- Skip processing the local player's data and exempted players
             if v >= getgenv().MAX_BLOCK_PAINT then
                 shout("\n\n\n\n\n\n\n[BLOCK GUARD] Hubbing Potential Griefer: "..k)
                 hub(k, "Potential Griefer")
