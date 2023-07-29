@@ -1,4 +1,3 @@
-
 --[[
 
     Blockate Anti-Grief
