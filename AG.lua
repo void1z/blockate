@@ -116,7 +116,7 @@ Players.LocalPlayer.PlayerGui.MainGUI.Logs.LogsList.ChildAdded:Connect(function(
         local paintedBlocks = Args[3] == "a" and 1 or Args[3]
         playerPaintCount[player] = (playerPaintCount[player] or 0) + paintedBlocks
         print("Block painted by "..player..", their paint count per two seconds is currently: "..playerPaintCount[player])
-    elseif string.find(child.Text, "!warp") then
+    elseif string.find(child.Text, "warp") then
         local playerName = child.Text:split(" ")[1]
         shout("\n\n\n\n\n\n\n[BLOCK GUARD] Hubbing Player for using !warp: "..playerName)
         hub(playerName, "Used !warp")
