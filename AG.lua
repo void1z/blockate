@@ -7,6 +7,7 @@
     ✅ Block Deletion
     ✅ Paint Griefing
     ✅ Command-based griefing (!warp, !kill, !cannon, etc.)
+    ✅ Alt Detection
 
     HOW TO USE:
     1. Run !logs
