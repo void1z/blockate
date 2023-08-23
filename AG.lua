@@ -93,7 +93,7 @@ local function increment(person)
 end
 -- // Events \\ --
 Players.LocalPlayer.PlayerGui:WaitForChild("MainGUI"):WaitForChild("Logs").Visible = true -- opens the logs gui so the event below wont freak out and hub/ban randoms
-shout("\n\n\n\n\n\n\n[BlockoGuard] v1.1 Blockate Anti-Grief Started.")
+shout("\n\n\n\n\n\n\n[BlockGuard] v1.1 Blockate Anti-Grief Started.")
 Players.LocalPlayer.PlayerGui.MainGUI.Logs.LogsList.ChildAdded:Connect(function(child)
     if string.find(child.Text, "destroyed") then
         local Args = child.Text:split(" ")
