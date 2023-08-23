@@ -1,30 +1,52 @@
-local SOUND_BLOCK_COMMAND = "!soundblock"
-
--- Services
+--[[
+    Blockate Anti-Grief
+    This Script Prevents These Types of Griefing:
+    ✅ Block Deletion
+    ✅ Paint Griefing
+    ✅ Command-based griefing (!warp, !kill, !cannon, etc.)
+    ✅ Alt Detection
+    HOW TO USE:
+    1. Run !logs
+    2. Run script
+    3. Enjoy
+]]
+-- // Configuration \\ --
+getgenv().MAX_BLOCK_DELETE = 30 -- how many blocks have to be deleted per 2 seconds for the check to trigger
+getgenv().MAX_BLOCK_PAINT = 300 -- how many blocks have to be painted per 2 seconds for the check to trigger
+getgenv().MAX_BLOCK_CHANGED = 30 -- how many !warp, !cannon commands have to be run per 2 seconds on a block for the check to trigger
+getgenv().MAX_CHANCES = 3 -- how many times does the person need to be hubbed before they get banned
+getgenv().WARNING_COOLDOWN = 3
+-- // Services \\ --
 local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
-
--- Setup
+local SOUND_BLOCK_COMMAND = "soundblock"
+-- // Setup \\ --
 if not isfolder("./BlockateAntiGrief") then
     makefolder("./BlockateAntiGrief")
 end
-
 if not isfile("./BlockateAntiGrief/GrieferList.json") then
     writefile("./BlockateAntiGrief/GrieferList.json", "{}")
 end
-
--- Variables
+-- // Variables \\ --
 local playerDestroyCount = {}
 local playerPaintCount = {}
 local grieferList = HttpService:JSONDecode(readfile("./BlockateAntiGrief/GrieferList.json"))
-local destroyWarningCooldown = {}
-local paintWarningCooldown = {}
+local destroyWarningCooldown = {} -- Add the destroy warning cooldown table
+local paintWarningCooldown = {}   -- Add the paint warning cooldown table
+
+-- Exempted Players (moved to getgenv)
+getgenv().exemptedPlayers = {
+    "void1z", 
+    "Player2",
+    -- Add more player names as needed
+}
 
 -- Function to check if a player is exempted
 local function isPlayerExempted(playerName)
     return table.find(getgenv().exemptedPlayers, playerName) ~= nil
 end
 
+-- // LOADSTRING here
 -- // Functions \\ --
 local function shout(message)
     game:GetService("ReplicatedStorage").Sockets.Command:InvokeServer("!shout "..message)
@@ -69,47 +91,47 @@ local function increment(person)
         ban(person, "Griefer")
     end
 end
-
--- Events
-Players.LocalPlayer.PlayerGui:WaitForChild("MainGUI"):WaitForChild("Logs").Visible = true
+-- // Events \\ --
+Players.LocalPlayer.PlayerGui:WaitForChild("MainGUI"):WaitForChild("Logs").Visible = true -- opens the logs gui so the event below wont freak out and hub/ban randoms
 shout("\n\n\n\n\n\n\nBlockate Anti-Grief Started.")
 Players.LocalPlayer.PlayerGui.MainGUI.Logs.LogsList.ChildAdded:Connect(function(child)
-    if child.Text then
-        elseif string.find(child.Text, "destroyed") then
-            local Args = child.Text:split(" ")
-            local player = Args[1]
-            playerDestroyCount[player] = (playerDestroyCount[player] or 0) + 1
-            print("Block deleted by " .. player .. ", their destroy count per two seconds is currently: " .. playerDestroyCount[player])
-        elseif string.find(child.Text, "painted") then
-            local Args = child.Text:split(" ")
-            local player = Args[1]
-            local paintedBlocks = Args[3] == "a" and 1 or Args[3]
-            playerPaintCount[player] = (playerPaintCount[player] or 0) + paintedBlocks
-            print("Block painted by " .. player .. ", their paint count per two seconds is currently: " .. playerPaintCount[player])
-        elseif string.find(child.Text, "warp") then
-            local playerName = child.Text:split(" ")[1]
-            shout("\n\n\n\n\n\n\n[BLOCK GUARD] Hubbing Player for using !warp: " .. playerName)
-            hub(playerName, "Used !warp")
-            increment(playerName)
-        elseif string.find(child.Text, "changed block with '" .. SOUND_BLOCK_COMMAND .. "'") then
-            local Args = child.Text:split(" ")
-            local player = Args[1]
-            if player ~= game.Players.LocalPlayer.Name then
-                shout("\n\n\n\n\n\n\n[BLOCK GUARD] Hubbing Potential Griefer (Used Soundblock Command): " .. player)
-                hub(player, "Used Soundblock Command")
-                playerDestroyCount[player] = nil
-                playerPaintCount[player] = nil
-                increment(player)
-            end
-        elseif string.find(child.Text, "ran '!tp all me'") then
-            local playerName = child.Text:split(" ")[1]
-            shout("\n\n\n\n\n\n\n[BLOCK GUARD] Hubbing Player for using 'tp all me': " .. playerName)
-            hub(playerName, "Used 'tp all me' command")
-            increment(playerName)
+    if string.find(child.Text, "destroyed") then
+        local Args = child.Text:split(" ")
+        local player = Args[1]
+        playerDestroyCount[player] = (playerDestroyCount[player] or 0) + 1
+        print("Block deleted by "..player..", their destroy count per two seconds is currently: "..playerDestroyCount[player])
+    elseif string.find(child.Text, "painted") then
+        local Args = child.Text:split(" ")
+        local player = Args[1]
+        local paintedBlocks = Args[3] == "a" and 1 or Args[3]
+        playerPaintCount[player] = (playerPaintCount[player] or 0) + paintedBlocks
+        print("Block painted by "..player..", their paint count per two seconds is currently: "..playerPaintCount[player])
+    elseif string.find(child.Text, "warp") then
+        local playerName = child.Text:split(" ")[1]
+        shout("\n\n\n\n\n\n\n[BLOCK GUARD] Hubbing Player for using !warp: "..playerName)
+        hub(playerName, "Used !warp")
+        increment(playerName)
+    elseif string.find(child.Text, "changed block with '"..SOUND_BLOCK_COMMAND.."'") then
+        -- Player used the soundblock command, hub them
+        local Args = child.Text:split(" ")
+        local player = Args[1]
+        -- Add a check to prevent the local player from being hubbed or banned
+        if player == game.Players.LocalPlayer.Name then
+            return
         end
+        shout("\n\n\n\n\n\n\n[BLOCK GUARD] Hubbing Potential Griefer (Used Soundblock Command): "..player)
+        hub(player, "Used Soundblock Command")
+        playerDestroyCount[player] = nil
+        playerPaintCount[player] = nil
+        increment(player)
+    elseif string.find(child.Text, "ran '!tp all me'") then
+        -- Player used the command "tp all me," hub them
+        local playerName = child.Text:split(" ")[1]
+        shout("\n\n\n\n\n\n\n[BLOCK GUARD] Hubbing Player for using 'tp all me': " .. playerName)
+        hub(playerName, "Used 'tp all me' command")
+        increment(playerName)
     end
 end)
-
 local MarketplaceService = game:GetService("MarketplaceService")
 Players.PlayerAdded:Connect(function(player)
     -- Auto-ban players whose accounts are under 30 days old
