@@ -216,14 +216,6 @@ end
 local function openLogsGUI()
     Players.LocalPlayer.PlayerGui:WaitForChild("MainGUI"):WaitForChild("Logs").Visible = true
 end
--- Event handler to check if Logs GUI is closed and reopen it
-local function checkLogsGUI()
-    while wait(4) do
-        local logsGUI = Players.LocalPlayer.PlayerGui:FindFirstChild("MainGUI") and Players.LocalPlayer.PlayerGui.MainGUI.Logs
-        if not logsGUI or not logsGUI.Visible then
-            openLogsGUI()
-        end
-    end
 end
 -- Spawn the event handler in a new thread
 task.spawn(checkLogsGUI)
