@@ -169,14 +169,14 @@ while wait(1) do
     local localPlayer = game.Players.LocalPlayer
     -- Block Destroy and Block Paint
     for k, v in pairs(playerDestroyCount) do
-        if k ~= localPlayer.Name and not isPlayerExempted(k) then -- Skip processing the local player's data and exempted players
+        if k ~= localPlayer.Name and not isPlayerExempted(k) then -- 
             if v >= getgenv().MAX_BLOCK_DELETE then
                 shout("\n\n\n\n\n\n\n[BLOCK GUARD] Hubbing Potential Griefer: "..k)
                 hub(k, "Potential Griefer")
                 playerDestroyCount[k] = nil
                 playerPaintCount[k] = nil
                 increment(k)
-            elseif v >= 10 then -- Only send the warning when blocks destroyed are 10 or more
+            elseif v >= 10 then -- send alertt
                 local cooldown = destroyWarningCooldown[k] or 0
                 if os.time() > cooldown then
                     sendTeamChat("[BLOCK GUARD] "..k.." has destroyed "..v.." blocks in a short time! Watch out for potential griefing!")
@@ -186,14 +186,14 @@ while wait(1) do
         end
     end
     for k, v in pairs(playerPaintCount) do
-        if k ~= localPlayer.Name and not isPlayerExempted(k) then -- Skip processing the local player's data and exempted players
+        if k ~= localPlayer.Name and not isPlayerExempted(k) then
             if v >= getgenv().MAX_BLOCK_PAINT then
                 shout("\n\n\n\n\n\n\n[BLOCK GUARD] Hubbing Potential Griefer: "..k)
                 hub(k, "Potential Griefer")
                 playerPaintCount[k] = nil
                 playerDestroyCount[k] = nil
                 increment(k)
-            elseif v >= 10 then -- Only send the warning when blocks painted are 10 or more
+            elseif v >= 10 then -- send alert
                 local cooldown = paintWarningCooldown[k] or 0
                 if os.time() > cooldown then
                     sendTeamChat("[BLOCK GUARD] "..k.." has painted "..v.." blocks in a short time! Watch out for potential griefing!")
@@ -215,7 +215,7 @@ end
 local function openLogsGUI()
     Players.LocalPlayer.PlayerGui:WaitForChild("MainGUI"):WaitForChild("Logs").Visible = true
 end
--- Event handler to check if Logs GUI is closed and reopen it
+-- this shit doesn't work
 local function checkLogsGUI()
     while wait(4) do
         local logsGUI = Players.LocalPlayer.PlayerGui:FindFirstChild("MainGUI") and Players.LocalPlayer.PlayerGui.MainGUI.Logs
